@@ -24,8 +24,6 @@ public class Person {
 	@Column(name="password")
 	private String password;
 	
-	@Column(name="salt")
-	private String salt;//盐值
 	
 	@Column(name="name")
 	private String name;
@@ -53,11 +51,6 @@ public class Person {
 	
 	@Column(name="is_lock")
 	private Integer isLock;
-	
-	//返回盐值+账号
-	public String getCredentialsSalt() {
-		return this.account+this.salt;
-	}
 
 	public Long getUserId() {
 		return userId;

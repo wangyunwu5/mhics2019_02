@@ -82,7 +82,6 @@ public class JwtUtil {
 			throw new CustomException("解密token中的公共信息出现JWTDecodeException异常:"+e.getMessage());
 		}
 	}
-	
 	/**
 	 * 生成签名
 	 * @param account

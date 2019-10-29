@@ -5,23 +5,30 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.util.ByteSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import cn.own.mhics.common.Constant;
 import cn.own.mhics.entity.Person;
+import cn.own.mhics.entity.Resource;
+import cn.own.mhics.entity.Role;
 import cn.own.mhics.server.UserService;
 import cn.own.mhics.tools.JedisUtil;
 import cn.own.mhics.tools.StringUtil;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 /**
  * realm实现类,用于实现具体的验证和授权方法
  * @author Bean
  *
  */
+@Service
 public class MyShiroRealm extends AuthorizingRealm {
  
+	
+	@Autowired
+	private UserService userService;
+	
 	/**
 	 * 用于认证
 	 * 进行用户名正确与否验证，
@@ -37,7 +44,6 @@ public class MyShiroRealm extends AuthorizingRealm {
 			throw new AuthenticationException("Token中账号为空");
 		}
 		//查询用户是否存在
-		UserService userService = new UserService();
 		Person user = userService.findOneUserByAccount(account);
 		if(user == null) {
 			throw new AuthenticationException("该账号不存在");
@@ -60,42 +66,23 @@ public class MyShiroRealm extends AuthorizingRealm {
 	 */
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
- 
-		System.out.println("MyShiroRealm的doGetAuthorizationInfo授权方法执行");
- 
-		// User user=(User)
-		// principals.fromRealm(this.getClass().getName()).iterator().next();//获取session中的用户
-		// System.out.println("在MyShiroRealm中AuthorizationInfo（授权）方法中从session中获取的user对象:"+user);
- 
-		// 从PrincipalCollection中获得用户信息
-		Object principal = principals.getPrimaryPrincipal();
-		System.out.println("ShiroRealm  AuthorizationInfo:" + principal.toString());
- 
-		// 根据用户名来查询数据库赋予用户角色,权限（查数据库）
-		Set<String> roles = new HashSet<>();
-		Set<String> permissions = new HashSet<>();
-//		2018.09.14更新
-		//		给用户添加user权限 (没有进行判断、对所有的用户给user权限)
-		if("user".equals(principal)){
-			roles.add("user");
-			permissions.add("user:query");
+		
+        SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+
+		String account = JwtUtil.getClaim(principals.toString(),Constant.ACCOUNT);
+		List<Role> roles = userService.getRoleByAccount(account);
+		for (Role role : roles) {
+			if(role != null) {
+				simpleAuthorizationInfo.addRole(role.getRoName());
+				List<Resource> resources = userService.getResourceByRole(role.getRoleId());
+				for (Resource resource : resources) {
+					if(resource != null) {
+						simpleAuthorizationInfo.addStringPermission(resource.getReCode());
+					}
+				}
+			}
 		}
-//		当用户名为admin时 为用户添加权限admin  两个admin可以理解为连个字段
-		if ("admin".equals(principal)) {
-			roles.add("admin");
-			permissions.add("admin:query");
-		}
-//		为用户添加visit游客权限，在url中没有为visit权限，所以，所有的操作都没权限
-		if("visit".equals(principal)){
-			roles.add("visit");
-			permissions.add("visit:query");
-		}
-//              更新以上代码
-		SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(roles);
-		//添加权限
-		info.setStringPermissions(permissions);
-		return info;
-		// return null;
+		return simpleAuthorizationInfo;
 	}
  
 }

@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import cn.own.mhics.cache.CustomCacheManager;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,8 +32,7 @@ public class ShiroConfigBean {
 	 * @return
 	 */
 	@Bean("shiroFilter")
-	public ShiroFilterFactoryBean shirFilter(DefaultWebSecurityManager securityManager) {
-		System.out.println("ShiroConfiguration.shirFilter()");
+	public ShiroFilterFactoryBean shiroFilterFactoryBean(DefaultWebSecurityManager securityManager) {
 		ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
 		//添加自己的过滤器取名为jwt
 		Map<String,Filter> filterMap = new HashMap<>(16);//数组长度为16
@@ -51,6 +52,7 @@ public class ShiroConfigBean {
 	 * @param myShiroMealm
 	 * @return
 	 */
+	@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")//告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。
 	@Bean
 	public DefaultWebSecurityManager securityManager(MyShiroRealm myShiroMealm) {
 		DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
@@ -64,7 +66,7 @@ public class ShiroConfigBean {
 		securityManager.setSubjectDAO(subjectDAO);
 		
 		//设置自定义cache缓存
-		//securityManager.setCacheManager();
+		securityManager.setCacheManager(new CustomCacheManager());
 		
 		return securityManager;
 	}
@@ -93,5 +95,4 @@ public class ShiroConfigBean {
 	public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
 	     return new LifecycleBeanPostProcessor();
 	}
- 
 }

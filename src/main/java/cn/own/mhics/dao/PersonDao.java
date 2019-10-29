@@ -1,5 +1,7 @@
 package cn.own.mhics.dao;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -9,5 +11,8 @@ public interface PersonDao extends JpaRepository<Person, Integer> {
 
 	@Query("select p from Person as p where p.account=?1")
 	Person findOneUserByAccount(String account);
+
+	@Query("select p from Person as p")
+	List<Person> getUserList();
 
 }
