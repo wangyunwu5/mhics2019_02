@@ -31,11 +31,9 @@ public class UserService {
 	public List<Role> getRoleByAccount(String account) {
 		return roleDao.getRoleByAccount(account);
 	}
-
 	public List<Resource> getResourceByRole(Integer roleId) {
 		return resourceDao.getResourceByRole(roleId);
 	}
-
 	public List<Person> getUserList() {
 		return personDao.getUserList();
 	}
